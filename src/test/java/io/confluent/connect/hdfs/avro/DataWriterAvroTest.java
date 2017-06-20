@@ -50,7 +50,6 @@ import io.confluent.connect.hdfs.wal.WAL;
 
 public class DataWriterAvroTest extends TestWithMiniDFSCluster {
 
-  private static final String extension = ".avro";
   private static final String ZERO_PAD_FMT = "%010d";
   private SchemaFileReader schemaFileReader = new AvroFileReader(avroData);
 
@@ -92,6 +91,7 @@ public class DataWriterAvroTest extends TestWithMiniDFSCluster {
         sinkRecords.add(sinkRecord);
       }
       hdfsWriter.write(sinkRecords);
+      String extension = hdfsWriter.getExtension();
       hdfsWriter.close(assignment);
       hdfsWriter.stop();
 
@@ -107,6 +107,7 @@ public class DataWriterAvroTest extends TestWithMiniDFSCluster {
             new Path(FileUtils
                          .committedFileName(url, topicsDir, directory, TOPIC_PARTITION, startOffset,
                                             endOffset, extension, ZERO_PAD_FMT));
+
         Collection<Object> records = schemaFileReader.readData(conf, path);
         long size = endOffset - startOffset + 1;
         assertEquals(size, records.size());
@@ -131,6 +132,8 @@ public class DataWriterAvroTest extends TestWithMiniDFSCluster {
     Set<String> committedFiles = new HashSet<>();
 
     String directory = TOPIC + "/" + "partition=" + String.valueOf(PARTITION);
+    DataWriter hdfsWriter = new DataWriter(connectorConfig, context, avroData);
+    String extension = hdfsWriter.getExtension();
 
     for (int i = 0; i < 5; ++i) {
       long startOffset = i * 10;
@@ -145,7 +148,6 @@ public class DataWriterAvroTest extends TestWithMiniDFSCluster {
     wal.append(WAL.endMarker, "");
     wal.close();
 
-    DataWriter hdfsWriter = new DataWriter(connectorConfig, context, avroData);
     hdfsWriter.recover(TOPIC_PARTITION);
     Map<TopicPartition, Long> offsets = context.offsets();
     assertTrue(offsets.containsKey(TOPIC_PARTITION));
@@ -178,6 +180,7 @@ public class DataWriterAvroTest extends TestWithMiniDFSCluster {
   @Test
   public void testWriteRecordMultiplePartitions() throws Exception {
     DataWriter hdfsWriter = new DataWriter(connectorConfig, context, avroData);
+    String extension = hdfsWriter.getExtension();
 
     for (TopicPartition tp: assignment) {
       hdfsWriter.recover(tp);
@@ -221,6 +224,9 @@ public class DataWriterAvroTest extends TestWithMiniDFSCluster {
 
   @Test
   public void testGetPreviousOffsets() throws Exception {
+    DataWriter hdfsWriter = new DataWriter(connectorConfig, context, avroData);
+    String extension = hdfsWriter.getExtension();
+
     String directory = TOPIC + "/" + "partition=" + String.valueOf(PARTITION);
     long[] startOffsets = {0, 3};
     long[] endOffsets = {2, 5};
@@ -236,9 +242,7 @@ public class DataWriterAvroTest extends TestWithMiniDFSCluster {
     path = new Path(FileUtils.fileName(url, topicsDir, directory, "abcd"));
     fs.createNewFile(path);
 
-    DataWriter hdfsWriter = new DataWriter(connectorConfig, context, avroData);
     hdfsWriter.recover(TOPIC_PARTITION);
-
     Map<TopicPartition, Long> committedOffsets = hdfsWriter.getCommittedOffsets();
 
     assertTrue(committedOffsets.containsKey(TOPIC_PARTITION));
@@ -252,6 +256,7 @@ public class DataWriterAvroTest extends TestWithMiniDFSCluster {
   @Test
   public void testWriteRecordNonZeroInitailOffset() throws Exception {
     DataWriter hdfsWriter = new DataWriter(connectorConfig, context, avroData);
+    String extension = hdfsWriter.getExtension();
     Partitioner partitioner = hdfsWriter.getPartitioner();
     hdfsWriter.recover(TOPIC_PARTITION);
 
@@ -292,6 +297,7 @@ public class DataWriterAvroTest extends TestWithMiniDFSCluster {
   @Test
   public void testRebalance() throws Exception {
     DataWriter hdfsWriter = new DataWriter(connectorConfig, context, avroData);
+    String extension = hdfsWriter.getExtension();
 
     // Initial assignment is {TP1, TP2}
     for (TopicPartition tp: assignment) {
@@ -400,6 +406,7 @@ public class DataWriterAvroTest extends TestWithMiniDFSCluster {
     HdfsSinkConnectorConfig connectorConfig = new HdfsSinkConnectorConfig(props);
 
     DataWriter hdfsWriter = new DataWriter(connectorConfig, context, avroData);
+    String extension = hdfsWriter.getExtension();
     hdfsWriter.recover(TOPIC_PARTITION);
 
     String key = "key";
@@ -456,6 +463,7 @@ public class DataWriterAvroTest extends TestWithMiniDFSCluster {
     HdfsSinkConnectorConfig connectorConfig = new HdfsSinkConnectorConfig(props);
 
     DataWriter hdfsWriter = new DataWriter(connectorConfig, context, avroData);
+    String extension = hdfsWriter.getExtension();
     hdfsWriter.recover(TOPIC_PARTITION);
 
     String key = "key";
@@ -518,6 +526,7 @@ public class DataWriterAvroTest extends TestWithMiniDFSCluster {
     HdfsSinkConnectorConfig connectorConfig = new HdfsSinkConnectorConfig(props);
 
     DataWriter hdfsWriter = new DataWriter(connectorConfig, context, avroData);
+    String extension = hdfsWriter.getExtension();
     hdfsWriter.recover(TOPIC_PARTITION);
 
     String key = "key";

@@ -23,6 +23,7 @@ import io.confluent.kafka.serializers.NonRecordContainer;
 import org.apache.avro.file.DataFileWriter;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.io.DatumWriter;
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
@@ -50,6 +51,17 @@ public class AvroRecordWriterProvider implements RecordWriterProvider {
   @Override
   public String getExtension() {
     return EXTENSION;
+  }
+
+  @Override
+  public String getCompressionCodecAndExtension() {
+    final String compressionCodec = connectorConfig.getString(HdfsSinkConnectorConfig.FORMAT_CLASS_COMPRESSION_CONFIG);
+
+    if (StringUtils.isBlank(compressionCodec)) {
+      return EXTENSION;
+    }
+
+    return "." + compressionCodec + EXTENSION;
   }
 
   @Override

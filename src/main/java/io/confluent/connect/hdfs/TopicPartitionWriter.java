@@ -158,7 +158,7 @@ public class TopicPartitionWriter {
     failureTime = -1L;
     offset = -1L;
     sawInvalidOffset = false;
-    extension = writerProvider.getExtension();
+    extension = writerProvider.getCompressionCodecAndExtension();
     zeroPadOffsetFormat
         = "%0" +
           connectorConfig.getInt(HdfsSinkConnectorConfig.FILENAME_OFFSET_ZERO_PAD_WIDTH_CONFIG) +
@@ -405,7 +405,7 @@ public class TopicPartitionWriter {
   }
 
   public String getExtension() {
-    return writerProvider.getExtension();
+    return writerProvider.getCompressionCodecAndExtension();
   }
 
   private String getDirectory(String encodedPartition) {

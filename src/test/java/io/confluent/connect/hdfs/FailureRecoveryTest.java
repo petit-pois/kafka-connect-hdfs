@@ -34,7 +34,6 @@ import static org.junit.Assert.assertEquals;
 
 public class FailureRecoveryTest extends HdfsSinkConnectorTestBase {
   private static final String ZERO_PAD_FMT = "%010d";
-  private static final String extension = "";
 
   @Before
   public void setUp() throws Exception {
@@ -128,6 +127,7 @@ public class FailureRecoveryTest extends HdfsSinkConnectorTestBase {
 
     assertEquals(context.timeout(), (long) connectorConfig.getLong(HdfsSinkConnectorConfig.RETRY_BACKOFF_CONFIG));
 
+    String extension = hdfsWriter.getExtension();
     Map<String, List<Object>> data = Data.getData();
     String directory2 = TOPIC + "/" + "partition=" + String.valueOf(PARTITION2);
     long[] validOffsets = {-1, 2, 5};

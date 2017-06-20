@@ -36,6 +36,9 @@ public class MemoryRecordWriterProvider implements RecordWriterProvider {
   }
 
   @Override
+  public String getCompressionCodecAndExtension() { return ""; }
+
+  @Override
   public RecordWriter<SinkRecord> getRecordWriter(
       Configuration conf, final String fileName, SinkRecord record, final AvroData avroData)
       throws IOException {

@@ -23,5 +23,6 @@ import io.confluent.connect.avro.AvroData;
 
 public interface RecordWriterProvider {
   String getExtension();
+  String getCompressionCodecAndExtension();
   RecordWriter<SinkRecord> getRecordWriter(Configuration conf, String fileName, SinkRecord record, AvroData avroData) throws IOException;
 }

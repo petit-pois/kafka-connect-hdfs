@@ -14,7 +14,6 @@
 
 package io.confluent.connect.hdfs.parquet;
 
-
 import org.apache.hadoop.fs.Path;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.Struct;
@@ -36,7 +35,6 @@ import static org.junit.Assert.assertEquals;
 
 public class DataWriterParquetTest extends TestWithMiniDFSCluster {
   private static final String ZERO_PAD_FMT = "%010d";
-  private static final String extension = ".parquet";
   private final SchemaFileReader schemaFileReader = new ParquetFileReader(avroData);
 
   @Override
@@ -48,13 +46,44 @@ public class DataWriterParquetTest extends TestWithMiniDFSCluster {
 
   @Test
   public void testWriteRecord() throws Exception {
-    DataWriter hdfsWriter = new DataWriter(connectorConfig, context, avroData);
+    testWriteRecordBase(connectorConfig);
+  }
+
+  @Test
+  public void testWriteSnappyCompressedRecord() throws Exception {
+    Map<String, String> props = createProps();
+    props.put(HdfsSinkConnectorConfig.FORMAT_CLASS_COMPRESSION_CONFIG, "snappy");
+    HdfsSinkConnectorConfig connectorConfig = new HdfsSinkConnectorConfig(props);
+    testWriteRecordBase(connectorConfig);
+  }
+
+  @Test
+  public void testWriteGzipCompressedRecord() throws Exception {
+    Map<String, String> props = createProps();
+    props.put(HdfsSinkConnectorConfig.FORMAT_CLASS_COMPRESSION_CONFIG, "gzip");
+    HdfsSinkConnectorConfig connectorConfig = new HdfsSinkConnectorConfig(props);
+    testWriteRecordBase(connectorConfig);
+  }
+
+  @Test
+  public void testWriteUncompressedRecord() throws Exception {
+    Map<String, String> props = createProps();
+    props.put(HdfsSinkConnectorConfig.FORMAT_CLASS_COMPRESSION_CONFIG, "uncompressed");
+    HdfsSinkConnectorConfig connectorConfig = new HdfsSinkConnectorConfig(props);
+    testWriteRecordBase(connectorConfig);
+  }
+
+  // lzo compression doesn't work out of the box with current tests, skipping
+
+  public void testWriteRecordBase(HdfsSinkConnectorConfig connectorConfigParam) throws Exception {
+    DataWriter hdfsWriter = new DataWriter(connectorConfigParam, context, avroData);
     Partitioner partitioner = hdfsWriter.getPartitioner();
     hdfsWriter.recover(TOPIC_PARTITION);
 
     String key = "key";
     Schema schema = createSchema();
     Struct record = createRecord(schema);
+    String extension = hdfsWriter.getExtension();
 
     Collection<SinkRecord> sinkRecords = new ArrayList<>();
     for (long offset = 0; offset < 7; offset++) {
@@ -63,6 +92,7 @@ public class DataWriterParquetTest extends TestWithMiniDFSCluster {
 
       sinkRecords.add(sinkRecord);
     }
+
     hdfsWriter.write(sinkRecords);
     hdfsWriter.close(assignment);
     hdfsWriter.stop();
